@@ -1,0 +1,2420 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MargDarshak Gwalior: Beyond the Fort</title>
+    <meta
+      name="description"
+      content="Deterministic spatial route solver & multi-agency tariff engine for Gwalior heritage tourism, topographical cliff constraints, and ODOP artisan circuits."
+    />
+    <meta property="og:title" content="MargDarshak Gwalior: Beyond the Fort" />
+    <meta
+      property="og:description"
+      content="Deterministic spatial route solver & multi-agency tariff engine for Gwalior heritage tourism, topographical cliff constraints, and ODOP artisan circuits."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace'],
+            },
+            colors: {
+              gwalior: {
+                sandstone: '#C88A58',
+                fort: '#8B4513',
+                cliff: '#78350F',
+                slate: '#0F172A',
+                surface: '#1E293B',
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Leaflet JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+
+    <style>
+      /* Custom map marker pulse & styles */
+      .custom-marker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: white;
+        font-weight: 700;
+        font-size: 11px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+        border: 2px solid #ffffff;
+        transition: transform 0.15s ease-out;
+      }
+      .custom-marker:hover {
+        transform: scale(1.18);
+        z-index: 1000 !important;
+      }
+      .custom-marker.origin {
+        background: #2563eb;
+      }
+      .custom-marker.asi {
+        background: #dc2626;
+      }
+      .custom-marker.mp-state {
+        background: #7c3aed;
+      }
+      .custom-marker.scindia {
+        background: #d97706;
+      }
+      .custom-marker.municipal {
+        background: #059669;
+      }
+      .custom-marker.candidate-unscheduled {
+        background: #fffbeb;
+        color: #d97706;
+        border: 2px dashed #d97706;
+        box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25);
+      }
+      .custom-marker.candidate-closed {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 2px dashed #dc2626;
+        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
+        font-weight: 800;
+      }
+      .custom-marker.candidate-stairs {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 2px dashed #2563eb;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+      }
+      .custom-marker.candidate-unselected {
+        background: #f8fafc;
+        color: #64748b;
+        border: 1.5px solid #cbd5e1;
+        font-size: 13px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+        opacity: 0.85;
+      }
+      .custom-marker.candidate-unselected:hover {
+        background: #2563eb;
+        color: #ffffff;
+        border-color: #2563eb;
+        opacity: 1;
+        transform: scale(1.22);
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(241, 245, 249, 0.6);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      /* Leaflet popup overrides */
+      .leaflet-popup-content-wrapper {
+        border-radius: 10px;
+        padding: 4px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        border: 1px solid #e2e8f0;
+      }
+      .leaflet-popup-content {
+        margin: 10px 12px;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-900 font-sans antialiased h-screen flex flex-col overflow-hidden">
+    <!-- TOP EXECUTIVE BAR -->
+    <header class="h-14 bg-white border-b border-slate-200 px-5 flex items-center justify-between gap-6 shrink-0 z-30">
+      <!-- Zone 1: Brand Wordmark -->
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-amber-400 font-bold text-base shadow-sm">
+          M
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-slate-900 text-base tracking-tight">MargDarshak Gwalior</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">Beyond the Fort</span>
+            <span class="text-xs text-slate-600 hidden sm:inline">Track 04: Tourism · AI Synergy Hackathon 2026</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zone 2: Engine Specifications -->
+      <nav class="hidden lg:flex items-center gap-6 text-xs text-slate-600 font-medium">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Deterministic Knapsack Solver</span>
+        </span>
+        <span class="text-slate-300">/</span>
+        <span>100m Sandstone Cliff Topography Bypass</span>
+        <span class="text-slate-300">/</span>
+        <span>ODOP Craft &amp; Heritage Food Integration</span>
+      </nav>
+
+      <!-- Zone 3: Actions -->
+      <div class="flex items-center gap-2">
+        <button
+          id="btn-run-tests"
+          type="button"
+          class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors flex items-center gap-1.5"
+          title="Run Official Hackathon Acceptance Test Suite (3/3)"
+        >
+          <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Run Acceptance Tests</span>
+        </button>
+        <button
+          id="btn-quick-optimize"
+          type="button"
+          class="px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm transition-colors flex items-center gap-1.5"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>Optimize Route</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobile & Tablet View Selector Bar (< 1024px) -->
+    <div class="lg:hidden flex items-center justify-around bg-slate-100 border-b border-slate-200 p-1.5 gap-1 shrink-0 z-30">
+      <button
+        id="tab-btn-controls"
+        type="button"
+        class="tab-btn flex-1 py-1.5 px-2 text-center rounded-md font-semibold text-xs transition bg-white text-slate-900 shadow-xs border border-slate-200"
+      >
+        1. Controls
+      </button>
+      <button
+        id="tab-btn-map"
+        type="button"
+        class="tab-btn flex-1 py-1.5 px-2 text-center rounded-md font-semibold text-xs transition text-slate-600 hover:text-slate-900"
+      >
+        2. Map Stage
+      </button>
+      <button
+        id="tab-btn-timeline"
+        type="button"
+        class="tab-btn flex-1 py-1.5 px-2 text-center rounded-md font-semibold text-xs transition text-slate-600 hover:text-slate-900"
+      >
+        3. Timeline &amp; Audit
+      </button>
+    </div>
+
+    <!-- MAIN 3-COLUMN WORKSPACE (Side-by-side on lg+, tabbed on mobile/tablet) -->
+    <main class="flex-1 flex flex-row overflow-hidden bg-slate-100 relative min-w-0 h-full">
+      <!-- LEFT PANEL: CONTROL & CONSTRAINTS -->
+      <section
+        id="panel-left"
+        class="w-full lg:w-[320px] xl:w-[360px] shrink-0 bg-white border-r border-slate-200 flex flex-col h-full overflow-hidden"
+      >
+        <!-- Panel Header -->
+        <div class="p-4 border-b border-slate-200 bg-white">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Control &amp; Constraints</h2>
+            <button id="btn-reset-defaults" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Reset</button>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Configure itinerary knapsack &amp; topological bounds</p>
+        </div>
+
+        <!-- Scrollable Controls -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+          <!-- Preset selector buttons -->
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1.5">Official Hackathon Presets</label>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                id="preset-test1"
+                class="preset-btn px-2.5 py-2 text-left rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 font-medium text-slate-700 transition"
+              >
+                <div class="font-bold text-slate-900">Test 1: Schedule</div>
+                <div class="text-[10px] text-slate-500">Monday / Gujari Closed</div>
+              </button>
+              <button
+                type="button"
+                id="preset-test2"
+                class="preset-btn px-2.5 py-2 text-left rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 font-medium text-slate-700 transition"
+              >
+                <div class="font-bold text-slate-900">Test 2: Mobility</div>
+                <div class="text-[10px] text-slate-500">Avoid Stairs / Urvai Ramp</div>
+              </button>
+              <button
+                type="button"
+                id="preset-test3"
+                class="preset-btn px-2.5 py-2 text-left rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 font-medium text-slate-700 transition"
+              >
+                <div class="font-bold text-slate-900">Test 3: ODOP &amp; Food</div>
+                <div class="text-[10px] text-slate-500">Bada &amp; Fort Anchors</div>
+              </button>
+              <button
+                type="button"
+                id="preset-full"
+                class="preset-btn px-2.5 py-2 text-left rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 font-medium text-slate-700 transition"
+              >
+                <div class="font-bold text-slate-900">Full Circuit</div>
+                <div class="text-[10px] text-slate-500">Max monuments (6h)</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Dynamic Alerts Display Container -->
+          <div id="alerts-container" class="space-y-2">
+            <!-- Dynamically injected alerts (e.g. Monday Gujari Mahal closure, Scindia closure, steep stairs, guardrails) -->
+          </div>
+
+          <!-- Origin Dropdown -->
+          <div>
+            <label for="select-origin" class="block font-semibold text-slate-800 mb-1">
+              Origin (Departure &amp; Return Station)
+            </label>
+            <select
+              id="select-origin"
+              class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-md px-2.5 py-1.5 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs font-medium"
+            >
+              <option value="gwalior_junction" selected>Gwalior Junction Railway Station (Default Hub)</option>
+              <option value="maharaj_bada">Maharaj Bada &amp; Sarafa Bazaar (Lashkar Center)</option>
+              <option value="tomb_of_tansen">Hazira / Tomb of Tansen (Northern Gate)</option>
+            </select>
+            <p class="text-[10px] text-slate-600 mt-1">
+              Strict knapsack constraint ensures guaranteed return before train departure.
+            </p>
+          </div>
+
+          <!-- Day of the Week & Start Time -->
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label for="select-day" class="block font-semibold text-slate-800 mb-1">Day of Week</label>
+              <select
+                id="select-day"
+                class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-md px-2.5 py-1.5 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs font-medium"
+              >
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday" selected>Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+              </select>
+            </div>
+            <div>
+              <label for="input-start-time" class="block font-semibold text-slate-800 mb-1">Start Time</label>
+              <input
+                type="time"
+                id="input-start-time"
+                value="10:00"
+                class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-md px-2.5 py-1.5 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-xs font-mono font-medium"
+              />
+            </div>
+          </div>
+
+          <!-- Interactive Time Budget Slider -->
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="input-budget-slider" class="font-semibold text-slate-800">Time Budget</label>
+              <span id="budget-display" class="font-mono font-bold text-blue-700 text-xs px-2 py-0.5 bg-blue-50 rounded border border-blue-200">
+                4.0h (240 mins)
+              </span>
+            </div>
+            <input
+              type="range"
+              id="input-budget-slider"
+              min="2.0"
+              max="8.0"
+              step="0.5"
+              value="4.0"
+              class="w-full accent-blue-600 cursor-pointer"
+            />
+            <div class="flex justify-between text-[10px] text-slate-600 mt-1 font-mono">
+              <span>2.0h</span>
+              <span>4.0h</span>
+              <span>6.0h</span>
+              <span>8.0h</span>
+            </div>
+          </div>
+
+          <!-- Topographical & Inclusion Toggles -->
+          <div class="space-y-2.5 bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div class="font-semibold text-slate-800 mb-1">Topographical &amp; Local Rules</div>
+
+            <!-- Toggle 1: Avoid Steep Stairs -->
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                id="toggle-avoid-stairs"
+                class="mt-0.5 h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
+              />
+              <div class="flex-1">
+                <span class="font-semibold text-slate-900 block leading-tight">Avoid Steep Stairs (FR-7)</span>
+                <span class="text-[10px] text-slate-500 block leading-tight mt-0.5">
+                  Bypasses 100m cliff stairs (Hathi Pol/Gujari). Routes strictly via Urvai Gate paved vehicular ramp.
+                </span>
+              </div>
+            </label>
+
+            <!-- Toggle 2: Embed ODOP & Food -->
+            <label class="flex items-start gap-2.5 cursor-pointer pt-1 border-t border-slate-200">
+              <input
+                type="checkbox"
+                id="toggle-embed-odop"
+                checked
+                class="mt-0.5 h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer"
+              />
+              <div class="flex-1">
+                <span class="font-semibold text-slate-900 block leading-tight">Embed ODOP &amp; Food (FR-5)</span>
+                <span class="text-[10px] text-slate-500 block leading-tight mt-0.5">
+                  Deterministically links verified Sandstone sculptors &amp; 80-year heritage eateries within 800m.
+                </span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Candidate Monuments Selection -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="font-semibold text-slate-800">Candidate Sites for Circuit</label>
+              <div class="flex items-center gap-2">
+                <button type="button" id="btn-select-all" class="text-[10px] text-blue-600 hover:underline">All</button>
+                <span class="text-slate-300">|</span>
+                <button type="button" id="btn-select-none" class="text-[10px] text-slate-500 hover:underline">Clear</button>
+              </div>
+            </div>
+            <div id="candidate-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1 border border-slate-200 rounded p-2 bg-slate-50 text-[11px]">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+          <!-- Primary Optimize Button -->
+          <div class="pt-2">
+            <button
+              id="btn-optimize"
+              type="button"
+              class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg shadow transition flex items-center justify-center gap-2 text-xs"
+            >
+              <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span>OPTIMIZE FEASIBLE ROUTE</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CENTER STAGE: SPATIAL TOPOLOGY & LEAFLET MAP -->
+      <section
+        id="panel-center"
+        class="hidden lg:flex flex-1 min-w-0 h-full relative flex-col bg-slate-200 border-r border-slate-200 overflow-hidden isolate"
+      >
+        <!-- Map Integrated Top Toolbar (Fixed inside center stage, never overlaps panels) -->
+        <div class="h-10 bg-white border-b border-slate-200 px-3 flex items-center justify-between shrink-0 z-20">
+          <div class="flex items-center gap-2 text-xs">
+            <span id="route-status-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span id="route-status-text" class="font-bold text-slate-900 whitespace-nowrap">Route Feasible</span>
+            <span class="text-slate-300">|</span>
+            <span id="hud-stats" class="text-slate-600 font-mono text-[11px] whitespace-nowrap">0 Stops · 0 mins</span>
+          </div>
+
+          <div class="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              id="btn-toggle-candidates"
+              class="px-2 py-1 text-[11px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded transition flex items-center gap-1"
+              title="Toggle Candidate Markers on Map"
+            >
+              <span id="label-toggle-candidates">All Selected Sites</span>
+            </button>
+            <button
+              type="button"
+              id="btn-toggle-legend"
+              class="px-2 py-1 text-[11px] font-medium text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded transition flex items-center gap-1"
+              title="Toggle Spatial Legend"
+            >
+              <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <span>Legend</span>
+            </button>
+            <button
+              type="button"
+              id="btn-view-fort"
+              class="px-2 py-1 text-[11px] font-medium text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded transition whitespace-nowrap"
+              title="Focus on Gwalior Fort Plateau"
+            >
+              Fort Plateau
+            </button>
+            <button
+              type="button"
+              id="btn-view-all"
+              class="px-2 py-1 text-[11px] font-medium text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded transition whitespace-nowrap"
+              title="Fit Full Route"
+            >
+              Fit Route
+            </button>
+          </div>
+        </div>
+
+        <!-- The Leaflet Map Canvas Container (Isolated with overflow-hidden) -->
+        <div class="flex-1 w-full h-full relative overflow-hidden isolate">
+          <div id="map" class="w-full h-full"></div>
+
+          <!-- Spatial Legend (Docked inside map canvas, fully self-contained) -->
+          <div
+            id="legend-card"
+            class="absolute bottom-3 left-3 z-[400] bg-white/95 backdrop-blur border border-slate-200 rounded-lg p-2.5 shadow-md text-[10px] max-w-[210px] pointer-events-auto transition-all"
+          >
+            <div class="font-bold text-slate-900 mb-1 flex items-center justify-between">
+              <span class="flex items-center gap-1">
+                <span>Spatial Legend</span>
+                <span class="text-[9px] font-normal text-slate-400">Esri</span>
+              </span>
+              <button
+                id="btn-close-legend"
+                type="button"
+                class="text-slate-400 hover:text-slate-700 p-0.5 rounded"
+                title="Hide Legend"
+              >
+                ✕
+              </button>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5">
+                <span class="w-3.5 h-0.5 border-t-2 border-blue-600 border-dashed inline-block"></span>
+                <span class="text-slate-700">Active Transit Path</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3.5 h-0.5 border-t-2 border-red-500 border-dotted inline-block"></span>
+                <span class="text-slate-700 text-red-700 font-medium">Excluded 100m Stairs</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3.5 h-0.5 border-t-2 border-emerald-500 border-dashed inline-block"></span>
+                <span class="text-slate-700">Urvai Vehicular Ramp</span>
+              </div>
+              <div class="flex items-center gap-1.5 pt-1 border-t border-slate-100">
+                <span class="w-2.5 h-2.5 rounded-full border-2 border-amber-500 border-dashed inline-block shrink-0"></span>
+                <span class="text-slate-700">Selected (Budget Limit)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full border-2 border-red-500 border-dashed inline-block shrink-0"></span>
+                <span class="text-slate-700">Selected (Closed / Bypassed)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full border border-slate-400 bg-slate-100 inline-block shrink-0"></span>
+                <span class="text-slate-600">Other Heritage (+ to Add)</span>
+              </div>
+              <div class="grid grid-cols-2 gap-x-1.5 gap-y-0.5 pt-1 border-t border-slate-100 text-[9px]">
+                <div class="flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-red-600 inline-block shrink-0"></span>
+                  <span class="truncate">ASI Bhopal</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-purple-600 inline-block shrink-0"></span>
+                  <span class="truncate">MP State</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-amber-500 inline-block shrink-0"></span>
+                  <span class="truncate">Scindia</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600 inline-block shrink-0"></span>
+                  <span class="truncate">ODOP/Food</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT PANEL: TIMELINE & TRANSPARENCY AUDIT -->
+      <section
+        id="panel-right"
+        class="hidden lg:flex w-full lg:w-[340px] xl:w-[380px] shrink-0 bg-white flex-col h-full overflow-hidden border-l border-slate-200"
+      >
+        <!-- Panel Header -->
+        <div class="p-4 border-b border-slate-200 bg-white shrink-0">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Execution Timeline &amp; Audit</h2>
+            <span id="badge-feasibility" class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+              FEASIBLE
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Train-departure knapsack guarantees &amp; multi-agency tariff</p>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+          <!-- KNAPSACK BUDGET SUMMARY CARD -->
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3.5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-[11px] font-semibold text-slate-500">TRAIN RETURN DEADLINE</div>
+                <div id="stat-return-time" class="text-lg font-bold text-slate-900 font-mono">12:35 PM</div>
+              </div>
+              <div class="text-right">
+                <div class="text-[11px] font-semibold text-slate-500">ELAPSED / BUDGET</div>
+                <div class="text-sm font-bold text-slate-900 font-mono">
+                  <span id="stat-elapsed-mins" class="text-blue-700">155</span> /
+                  <span id="stat-budget-mins">300</span> mins
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div>
+              <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                <div id="stat-progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 52%"></div>
+              </div>
+              <div class="flex justify-between items-center text-[10px] text-slate-600 mt-1 font-mono">
+                <span id="stat-transit-split">Transit: 45m · Sightseeing: 110m</span>
+                <span id="stat-slack-buffer" class="text-emerald-700 font-semibold">+145m safe buffer</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CHRONOLOGICAL STEP-BY-STEP TIMELINE -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-slate-800 uppercase tracking-wide text-[11px]">Itinerary Timeline</h3>
+              <span id="timeline-stop-count" class="text-[10px] text-slate-500">2 Stops</span>
+            </div>
+            <div id="timeline-container" class="space-y-2">
+              <!-- Dynamically populated stops -->
+            </div>
+          </div>
+
+          <!-- MULTI-AGENCY TARIFF TRANSPARENCY BREAKDOWN (FR-4) -->
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3.5">
+            <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-200">
+              <h3 class="font-bold text-slate-800 uppercase tracking-wide text-[11px]">Multi-Agency Tariff Audit (FR-4)</h3>
+              <span id="tariff-total-badge" class="font-mono font-bold text-slate-900 text-xs">₹25 Total</span>
+            </div>
+            <table class="w-full text-[11px]">
+              <tbody id="tariff-table-body" class="divide-y divide-slate-200">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+            <div class="text-[10px] text-slate-600 mt-2 italic bg-white p-2 rounded border border-slate-200">
+              ℹ️ ASI Bhopal Circle uses composite ticketing: 1 pass covers Man Mandir Palace, Sas-Bahu &amp; Teli Ka Mandir.
+            </div>
+          </div>
+
+          <!-- EMBEDDED ODOP ARTISANS & CULINARY ANCHORS (FR-5) -->
+          <div id="merchants-section" class="bg-slate-50 border border-slate-200 rounded-lg p-3.5">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-bold text-slate-800 uppercase tracking-wide text-[11px]">ODOP &amp; Culinary Heritage (FR-5)</h3>
+              <span id="merchant-count-badge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">
+                Verified &lt; 800m
+              </span>
+            </div>
+            <div id="merchants-container" class="space-y-1.5">
+              <!-- Dynamically populated merchants -->
+            </div>
+          </div>
+
+          <!-- REJECTIONS & AUDIT LOG -->
+          <div id="audit-log-section" class="bg-slate-50 border border-slate-200 rounded-lg p-3.5">
+            <h3 class="font-bold text-slate-800 uppercase tracking-wide text-[11px] mb-1.5">Safeguard Audit Log</h3>
+            <div id="audit-log-container" class="space-y-1 text-[11px] text-slate-600">
+              <!-- Logs populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ACCEPTANCE TESTS MODAL (RUN OFFICIAL PRESENTATION SUITE) -->
+    <div id="modal-tests" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-base">Official Acceptance Test Suite (Presentation Suite)</h3>
+            <p class="text-xs text-slate-300">MargDarshak Gwalior V1 Deterministic Verification</p>
+          </div>
+          <button id="btn-close-modal" class="text-slate-400 hover:text-white p-1 rounded">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-5 overflow-y-auto space-y-4 text-xs font-mono">
+          <!-- Overall Status Badge -->
+          <div id="tests-overall-card" class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-600"></span>
+              <span class="font-bold text-emerald-900 font-sans text-sm">ALL 3 ACCEPTANCE TESTS PASSED (3/3)</span>
+            </div>
+            <span class="text-emerald-700 font-bold font-sans">100% Deterministic Guarantee</span>
+          </div>
+
+          <!-- Test 1 Card -->
+          <div class="border border-slate-200 rounded-lg p-3 bg-slate-50 space-y-1">
+            <div class="flex items-center justify-between font-sans">
+              <span class="font-bold text-slate-900 text-xs">[TEST 1] Temporal &amp; Schedule Feasibility</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">PASS</span>
+            </div>
+            <p class="text-slate-600 font-sans text-[11px]">Input: Monday | Budget: 5.0h | Request: Gujari Mahal, Man Mandir, Tansen</p>
+            <div class="bg-white p-2 rounded border border-slate-200 text-slate-700 text-[11px] space-y-0.5">
+              <div>✅ Gujari Mahal flagged as CLOSED on Mondays (MP State Archaeology policy)</div>
+              <div>✅ Generated safe fallback under 5.0h (155 mins total elapsed, return 12:35 PM)</div>
+              <div class="text-slate-500 font-sans text-[10px]">Stops: Tomb of Tansen (Arr 10:15 AM) ➔ Man Mandir Palace (Arr 11:15 AM)</div>
+            </div>
+          </div>
+
+          <!-- Test 2 Card -->
+          <div class="border border-slate-200 rounded-lg p-3 bg-slate-50 space-y-1">
+            <div class="flex items-center justify-between font-sans">
+              <span class="font-bold text-slate-900 text-xs">[TEST 2] Topological &amp; Mobility Constraint (FR-7)</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">PASS</span>
+            </div>
+            <p class="text-slate-600 font-sans text-[11px]">Input: 'Avoid Steep Stairs' = TRUE | Destination: Gwalior Fort</p>
+            <div class="bg-white p-2 rounded border border-slate-200 text-slate-700 text-[11px] space-y-0.5">
+              <div>✅ Excluded pedestrian stairs: Gujari Mahal / eastern cliff stair ascent</div>
+              <div>✅ Mode verified: Routed exclusively via "Vehicular/Auto via Urvai Gate" ramp</div>
+              <div class="text-slate-500 font-sans text-[10px]">Step-free plateau access guaranteed for wheelchair/elderly travelers</div>
+            </div>
+          </div>
+
+          <!-- Test 3 Card -->
+          <div class="border border-slate-200 rounded-lg p-3 bg-slate-50 space-y-1">
+            <div class="flex items-center justify-between font-sans">
+              <span class="font-bold text-slate-900 text-xs">[TEST 3] Micro-Merchant &amp; ODOP Inclusion (FR-5)</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">PASS</span>
+            </div>
+            <p class="text-slate-600 font-sans text-[11px]">Input: 4-Hour Tour | Origin: Gwalior Junction | Fort &amp; Bada</p>
+            <div class="bg-white p-2 rounded border border-slate-200 text-slate-700 text-[11px] space-y-0.5">
+              <div>✅ Verified ODOP Artisan: Urvai Sandstone Miniatures (450m from Man Mandir)</div>
+              <div>✅ Verified Culinary Anchor: SS Kachoriwala (80-yr Old Anchor) (150m from Bada)</div>
+              <div>✅ Verified Culinary Anchor: Bahadura Sweets (350m) &amp; Morena Gajak (200m)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap justify-end gap-2">
+          <button id="btn-apply-test1" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-xs">
+            Load Test 1 in Workspace
+          </button>
+          <button id="btn-apply-test2" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-xs">
+            Load Test 2 in Workspace
+          </button>
+          <button id="btn-apply-test3" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-xs">
+            Load Test 3 in Workspace
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENT-SIDE DETERMINISTIC LOGIC PORT & LEAFLET ENGINE -->
+    <script>
+      /**
+       * MARGDARSHAK GWALIOR DETERMINISTIC ENGINE
+       * Direct client-side JavaScript port from Python algorithmic notebook (Blocks 1-6).
+       */
+
+      // ==========================================
+      // BLOCK 1: GWALIOR TOURISM DESTINATION SCHEMA
+      // ==========================================
+      const GWALIOR_NODES = {
+        gwalior_junction: {
+          name: "Gwalior Junction Railway Station",
+          category: "transit_hub",
+          jurisdiction: "Indian Railways",
+          coords: [26.2183, 78.1828],
+          open_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          open_hours: ["00:00", "23:59"],
+          avg_visit_mins: 0,
+          entry_fee_inr: 0,
+          requires_stairs: false,
+          access_point: "flat_road",
+          merchants: []
+        },
+        man_mandir_palace: {
+          name: "Man Mandir Palace (Gwalior Fort)",
+          category: "archaeological",
+          jurisdiction: "ASI Bhopal Circle",
+          coords: [26.2304, 78.1692],
+          open_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          open_hours: ["06:00", "17:30"],
+          avg_visit_mins: 60,
+          entry_fee_inr: 25,
+          requires_stairs: false, // Plateau access via Urvai Gate road
+          access_point: "urvai_gate_plateau",
+          merchants: [
+            { name: "Urvai Sandstone Miniatures", type: "ODOP Craft", distance_m: 450 }
+          ]
+        },
+        gujari_mahal: {
+          name: "Gujari Mahal State Archaeological Museum",
+          category: "museum",
+          jurisdiction: "MP State Archaeology",
+          coords: [26.2312, 78.1725],
+          // Closed on Mondays!
+          open_days: ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          open_hours: ["10:00", "17:00"],
+          avg_visit_mins: 45,
+          entry_fee_inr: 20,
+          requires_stairs: true, // Eastern base pedestrian ascent / steep descent
+          access_point: "gwalior_gate_stairs",
+          merchants: [
+            { name: "Ghauspura Stone Craftsmen Guild", type: "ODOP Craft", distance_m: 600 }
+          ]
+        },
+        sas_bahu_temple: {
+          name: "Sas-Bahu (Sahastrabahu) Temples",
+          category: "archaeological",
+          jurisdiction: "ASI Bhopal Circle",
+          coords: [26.2281, 78.1711],
+          open_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          open_hours: ["06:00", "17:30"],
+          avg_visit_mins: 40,
+          entry_fee_inr: 0, // Covered under composite ASI ticket
+          requires_stairs: false,
+          access_point: "urvai_gate_plateau",
+          merchants: []
+        },
+        teli_ka_mandir: {
+          name: "Teli Ka Mandir",
+          category: "archaeological",
+          jurisdiction: "ASI Bhopal Circle",
+          coords: [26.2223, 78.1654],
+          open_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          open_hours: ["06:00", "17:30"],
+          avg_visit_mins: 30,
+          entry_fee_inr: 0, // Covered under composite ASI ticket
+          requires_stairs: false,
+          access_point: "urvai_gate_plateau",
+          merchants: []
+        },
+        gopachal_parvat: {
+          name: "Gopachal Parvat Jain Colossi",
+          category: "archaeological_religious",
+          jurisdiction: "ASI / Municipal",
+          coords: [26.2155, 78.1633],
+          open_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          open_hours: ["06:00", "18:00"],
+          avg_visit_mins: 35,
+          entry_fee_inr: 0,
+          requires_stairs: true,
+          access_point: "urvai_gate_approach",
+          merchants: []
+        },
+        jai_vilas_palace: {
+          name: "Jai Vilas Palace & Scindia Museum",
+          category: "museum",
+          jurisdiction: "Scindia Devasthan Trust (Private)",
+          coords: [26.2044, 78.1622],
+          // Closed on Mondays!
+          open_days: ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          open_hours: ["10:00", "17:30"],
+          avg_visit_mins: 90,
+          entry_fee_inr: 350,
+          requires_stairs: false,
+          access_point: "lashkar_road",
+          merchants: [
+            { name: "Jayendraganj Local Brass & Handicrafts", type: "Souvenir", distance_m: 500 }
+          ]
+        },
+        tomb_of_tansen: {
+          name: "Tomb of Tansen & Mohammad Ghaus",
+          category: "cultural_heritage",
+          jurisdiction: "ASI Bhopal Circle",
+          coords: [26.2361, 78.1824],
+          open_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          open_hours: ["06:00", "18:00"],
+          avg_visit_mins: 40,
+          entry_fee_inr: 0,
+          requires_stairs: false,
+          access_point: "hazira_road",
+          merchants: [
+            { name: "Hazira Traditional Petha & Sweets", type: "Culinary Heritage", distance_m: 350 }
+          ]
+        },
+        sarod_ghar: {
+          name: "Sarod Ghar (Museum of Musical Heritage)",
+          category: "museum",
+          jurisdiction: "Ustad Hafiz Ali Khan Memorial Trust",
+          coords: [26.2081, 78.1601],
+          // Closed on Sundays!
+          open_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          open_hours: ["10:00", "17:00"],
+          avg_visit_mins: 45,
+          entry_fee_inr: 20,
+          requires_stairs: false,
+          access_point: "jiwaji_ganj_alleys",
+          merchants: [
+            { name: "Jiwaji Ganj Musical Crafts & String Repair", type: "Cultural Craft", distance_m: 250 }
+          ]
+        },
+        maharaj_bada: {
+          name: "Maharaj Bada & Sarafa Bazaar",
+          category: "civic_culinary",
+          jurisdiction: "Gwalior Municipal Corp (GSCDCL)",
+          coords: [26.1994, 78.1572],
+          open_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          open_hours: ["10:00", "22:00"],
+          avg_visit_mins: 45,
+          entry_fee_inr: 0,
+          requires_stairs: false,
+          access_point: "lashkar_plaza",
+          merchants: [
+            { name: "SS Kachoriwala (80-yr Old Anchor)", type: "Culinary Heritage", distance_m: 150 },
+            { name: "Bahadura Sweets (Naya Bazaar)", type: "Culinary Heritage", distance_m: 350 },
+            { name: "Morena Gajak Bhandar", type: "Culinary Heritage", distance_m: 200 }
+          ]
+        },
+        bateshwar_temples: {
+          name: "Bateshwar Group of Temples (Morena)",
+          category: "peripheral_circuit",
+          jurisdiction: "ASI Bhopal Circle",
+          coords: [26.4251, 78.1882],
+          open_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          open_hours: ["06:00", "17:30"],
+          avg_visit_mins: 60,
+          entry_fee_inr: 0,
+          requires_stairs: false,
+          access_point: "morena_highway_nh44",
+          distance_km_from_center: 35,
+          merchants: []
+        }
+      };
+
+      // ==========================================
+      // BLOCK 2: TOPOLOGICAL TRAVEL-TIME MATRIX
+      // ==========================================
+      const TRANSIT_TIME_MINS = {
+        "gwalior_junction|man_mandir_palace": 20,
+        "gwalior_junction|gujari_mahal": 15,
+        "gwalior_junction|tomb_of_tansen": 15,
+        "gwalior_junction|jai_vilas_palace": 18,
+        "gwalior_junction|sarod_ghar": 16,
+        "gwalior_junction|maharaj_bada": 20,
+        "gwalior_junction|bateshwar_temples": 75,
+
+        // Fort Plateau internal movements
+        "man_mandir_palace|sas_bahu_temple": 8,
+        "man_mandir_palace|teli_ka_mandir": 10,
+        "sas_bahu_temple|teli_ka_mandir": 8,
+        "teli_ka_mandir|gopachal_parvat": 12,
+
+        // Fort Plateau to City
+        "man_mandir_palace|jai_vilas_palace": 25,
+        "man_mandir_palace|maharaj_bada": 25,
+        "man_mandir_palace|tomb_of_tansen": 20,
+        "man_mandir_palace|gujari_mahal": 25,
+
+        // Lashkar Cluster
+        "jai_vilas_palace|maharaj_bada": 10,
+        "jai_vilas_palace|sarod_ghar": 10,
+        "sarod_ghar|maharaj_bada": 8,
+
+        // Hazira to Lashkar
+        "tomb_of_tansen|maharaj_bada": 25,
+        "tomb_of_tansen|jai_vilas_palace": 25,
+        "tomb_of_tansen|sarod_ghar": 22,
+        "tomb_of_tansen|gujari_mahal": 10,
+
+        // Peripheral Morena
+        "man_mandir_palace|bateshwar_temples": 85,
+        "maharaj_bada|bateshwar_temples": 90
+      };
+
+      function getTransitTime(originId, destId) {
+        if (originId === destId) return 0;
+        const key1 = `${originId}|${destId}`;
+        const key2 = `${destId}|${originId}`;
+        if (TRANSIT_TIME_MINS[key1] !== undefined) return TRANSIT_TIME_MINS[key1];
+        if (TRANSIT_TIME_MINS[key2] !== undefined) return TRANSIT_TIME_MINS[key2];
+
+        // Fallback heuristic via Gwalior Junction hub
+        const leg1 =
+          TRANSIT_TIME_MINS[`${originId}|gwalior_junction`] ||
+          TRANSIT_TIME_MINS[`gwalior_junction|${originId}`] ||
+          20;
+        const leg2 =
+          TRANSIT_TIME_MINS[`gwalior_junction|${destId}`] ||
+          TRANSIT_TIME_MINS[`${destId}|gwalior_junction`] ||
+          20;
+        return leg1 + leg2;
+      }
+
+      // ==========================================
+      // BLOCK 3: VALIDATION & SAFEGUARDS
+      // ==========================================
+      function parseTimeStr(timeStr) {
+        const [h, m] = timeStr.split(':').map(Number);
+        return h * 60 + m;
+      }
+
+      function formatMinsToTime(minutesFromMidnight) {
+        const hrs = Math.floor(minutesFromMidnight / 60) % 24;
+        const mins = minutesFromMidnight % 60;
+        const period = hrs < 12 ? 'AM' : 'PM';
+        let displayHrs = hrs % 12;
+        if (displayHrs === 0) displayHrs = 12;
+        const padM = mins < 10 ? `0${mins}` : mins;
+        const padH = displayHrs < 10 ? `0${displayHrs}` : displayHrs;
+        return `${padH}:${padM} ${period}`;
+      }
+
+      function validateSiteOperationalStatus(nodeId, dayOfWeek, arrivalTimeMins, stayDurationMins) {
+        const node = GWALIOR_NODES[nodeId];
+        if (!node) return { isOpen: false, reason: `Unknown location ID: ${nodeId}` };
+
+        // 1. Day of week check
+        if (!node.open_days.includes(dayOfWeek)) {
+          return {
+            isOpen: false,
+            reason: `CLOSED on ${dayOfWeek}s (${node.jurisdiction} policy)`
+          };
+        }
+
+        // 2. Operating hours check
+        const openStart = parseTimeStr(node.open_hours[0]);
+        const openEnd = parseTimeStr(node.open_hours[1]);
+        const departureTimeMins = arrivalTimeMins + stayDurationMins;
+
+        if (arrivalTimeMins < openStart) {
+          return {
+            isOpen: false,
+            reason: `Opens at ${node.open_hours[0]}, but arrival scheduled at ${formatMinsToTime(arrivalTimeMins)}`
+          };
+        }
+        if (departureTimeMins > openEnd) {
+          return {
+            isOpen: false,
+            reason: `Closes at ${node.open_hours[1]}, which overlaps past allowable visit duration`
+          };
+        }
+
+        return { isOpen: true, reason: null };
+      }
+
+      function checkPeripheralCircuitGuardrail(candidateNodeIds, timeBudgetHours) {
+        const hasPeripheral = candidateNodeIds.some(
+          (nid) => GWALIOR_NODES[nid] && GWALIOR_NODES[nid].category === 'peripheral_circuit'
+        );
+        if (hasPeripheral && timeBudgetHours < 5.0) {
+          return {
+            isSafe: false,
+            error:
+              `REJECTED: Bateshwar/Mitawali temples sit 35-45 km north in Morena district. ` +
+              `Round-trip travel requires at least 2.5 hours transit alone. ` +
+              `Your time budget of ${timeBudgetHours}h is insufficient. City-based heritage alternatives recommended instead.`
+          };
+        }
+        return { isSafe: true, error: null };
+      }
+
+      function filterAccessibleNodes(candidateNodeIds, avoidStairs) {
+        const eligible = [];
+        const excluded = [];
+        for (const nid of candidateNodeIds) {
+          const node = GWALIOR_NODES[nid];
+          if (avoidStairs && node && node.requires_stairs) {
+            excluded.push(nid);
+          } else {
+            eligible.push(nid);
+          }
+        }
+        return { eligible, excluded };
+      }
+
+      // ==========================================
+      // BLOCK 4: ROUTE SEQUENCER & TARIFF ENGINE
+      // ==========================================
+      function planMargdarshakItinerary({
+        timeBudgetHours,
+        startTimeStr,
+        dayOfWeek,
+        originNodeId,
+        candidateNodeIds,
+        avoidStairs = false
+      }) {
+        const totalBudgetMins = Math.round(timeBudgetHours * 60);
+        const startTimeMins = parseTimeStr(startTimeStr);
+        let currentTimeMins = startTimeMins;
+
+        // 1. Peripheral Guardrail Check (TC-03)
+        const guardrail = checkPeripheralCircuitGuardrail(candidateNodeIds, timeBudgetHours);
+        if (!guardrail.isSafe) {
+          return {
+            status: "REJECTED",
+            reason: guardrail.error,
+            itinerary: [],
+            total_duration_mins: 0,
+            total_cost_by_agency: {},
+            total_cost_sum_inr: 0,
+            embedded_merchants: [],
+            rejected_closures: [],
+            excluded_stairs: []
+          };
+        }
+
+        // 2. Mobility Filtering (FR-7)
+        const { eligible: accessibleCandidates, excluded: excludedStairNodes } = filterAccessibleNodes(
+          candidateNodeIds,
+          avoidStairs
+        );
+
+        // 3. Schedule Feasibility Filtering (FR-1)
+        const validCandidates = [];
+        const rejectedClosed = [];
+
+        for (const nid of accessibleCandidates) {
+          const node = GWALIOR_NODES[nid];
+          const check = validateSiteOperationalStatus(
+            nid,
+            dayOfWeek,
+            currentTimeMins,
+            node.avg_visit_mins
+          );
+          if (check.isOpen) {
+            validCandidates.push(nid);
+          } else {
+            rejectedClosed.push({ node: node.name, nodeId: nid, reason: check.reason });
+          }
+        }
+
+        // 4. Greedy Nearest-Neighbor Route Construction (FR-2, FR-3)
+        const itinerary = [];
+        let currentLoc = originNodeId;
+        let totalTransitMins = 0;
+        let totalVisitMins = 0;
+        const tariffs = {};
+        const embeddedMerchants = [];
+
+        const remainingNodes = [...validCandidates];
+
+        while (remainingNodes.length > 0) {
+          // Sort remaining by proximity from current location
+          remainingNodes.sort((a, b) => getTransitTime(currentLoc, a) - getTransitTime(currentLoc, b));
+          const nextNodeId = remainingNodes[0];
+          const nextNode = GWALIOR_NODES[nextNodeId];
+
+          const transitTime = getTransitTime(currentLoc, nextNodeId);
+          const visitTime = nextNode.avg_visit_mins;
+          const returnToOriginTime = getTransitTime(nextNodeId, originNodeId);
+
+          // Knapsack check: will this node + return to station exceed budget?
+          const projectedTotal =
+            (currentTimeMins - startTimeMins) + transitTime + visitTime + returnToOriginTime;
+
+          if (projectedTotal > totalBudgetMins) {
+            remainingNodes.shift();
+            continue;
+          }
+
+          // Re-verify opening hours with exact calculated arrival time
+          const arrivalMins = currentTimeMins + transitTime;
+          const checkArrival = validateSiteOperationalStatus(
+            nextNodeId,
+            dayOfWeek,
+            arrivalMins,
+            visitTime
+          );
+          if (!checkArrival.isOpen) {
+            rejectedClosed.push({ node: nextNode.name, nodeId: nextNodeId, reason: checkArrival.reason });
+            remainingNodes.shift();
+            continue;
+          }
+
+          const departureMins = arrivalMins + visitTime;
+
+          const transitMode =
+            avoidStairs && (nextNode.access_point || "").includes("urvai")
+              ? "Vehicular/Auto via Urvai Gate"
+              : "Auto-Rickshaw / E-Rickshaw";
+
+          itinerary.push({
+            stop_number: itinerary.length + 1,
+            node_id: nextNodeId,
+            name: nextNode.name,
+            jurisdiction: nextNode.jurisdiction,
+            transit_mode: transitMode,
+            transit_mins: transitTime,
+            arrival_time: formatMinsToTime(arrivalMins),
+            arrival_mins: arrivalMins,
+            visit_duration_mins: visitTime,
+            departure_time: formatMinsToTime(departureMins),
+            departure_mins: departureMins,
+            entry_fee_inr: nextNode.entry_fee_inr,
+            access_note: avoidStairs ? "Step-free vehicular access" : nextNode.access_point
+          });
+
+          // Multi-agency Tariff
+          const agency = nextNode.jurisdiction;
+          tariffs[agency] = (tariffs[agency] || 0) + nextNode.entry_fee_inr;
+
+          // Micro-merchants
+          for (const m of nextNode.merchants || []) {
+            embeddedMerchants.push({
+              merchant_name: m.name,
+              type: m.type,
+              near_stop: nextNode.name,
+              walking_distance_m: m.distance_m
+            });
+          }
+
+          currentTimeMins = departureMins;
+          totalTransitMins += transitTime;
+          totalVisitMins += visitTime;
+          currentLoc = nextNodeId;
+          remainingNodes.shift();
+        }
+
+        // Return transit leg to origin
+        const finalReturnMins = getTransitTime(currentLoc, originNodeId);
+        totalTransitMins += finalReturnMins;
+        const finalDepartureMins = currentTimeMins + finalReturnMins;
+        const totalElapsedMins = finalDepartureMins - startTimeMins;
+
+        const totalCostSum = Object.values(tariffs).reduce((acc, v) => acc + v, 0);
+
+        return {
+          status: itinerary.length > 0 ? "FEASIBLE" : "NO_FEASIBLE_ROUTE",
+          total_budget_mins: totalBudgetMins,
+          total_elapsed_mins: totalElapsedMins,
+          total_visit_mins: totalVisitMins,
+          total_transit_mins: totalTransitMins,
+          return_to_origin_time: formatMinsToTime(finalDepartureMins),
+          itinerary: itinerary,
+          total_cost_by_agency: tariffs,
+          total_cost_sum_inr: totalCostSum,
+          embedded_merchants: embeddedMerchants,
+          rejected_closures: rejectedClosed,
+          excluded_stairs: excludedStairNodes
+        };
+      }
+
+      // ==========================================
+      // BLOCK 5: OFFICIAL 3 ACCEPTANCE TESTS RUNNER
+      // ==========================================
+      function runOfficialAcceptanceTests() {
+        // TEST 1: Temporal & Schedule Feasibility
+        const t1Res = planMargdarshakItinerary({
+          timeBudgetHours: 5.0,
+          startTimeStr: "10:00",
+          dayOfWeek: "Monday",
+          originNodeId: "gwalior_junction",
+          candidateNodeIds: ["gujari_mahal", "man_mandir_palace", "tomb_of_tansen"],
+          avoidStairs: false
+        });
+        const isGujariFlagged = t1Res.rejected_closures.some((r) => r.node.includes("Gujari Mahal"));
+        const isT1TimeValid = t1Res.total_elapsed_mins <= 300;
+        const t1Pass = isGujariFlagged && isT1TimeValid && t1Res.itinerary.length > 0;
+
+        // TEST 2: Topological & Mobility Constraint
+        const t2Res = planMargdarshakItinerary({
+          timeBudgetHours: 4.0,
+          startTimeStr: "10:00",
+          dayOfWeek: "Wednesday",
+          originNodeId: "gwalior_junction",
+          candidateNodeIds: ["man_mandir_palace", "gujari_mahal", "teli_ka_mandir"],
+          avoidStairs: true
+        });
+        const t2Pass =
+          t2Res.excluded_stairs.includes("gujari_mahal") &&
+          t2Res.itinerary.every((s) => s.transit_mode.includes("Urvai"));
+
+        // TEST 3: Micro-Merchant Inclusion
+        const t3Res = planMargdarshakItinerary({
+          timeBudgetHours: 4.0,
+          startTimeStr: "10:30",
+          dayOfWeek: "Thursday",
+          originNodeId: "gwalior_junction",
+          candidateNodeIds: ["man_mandir_palace", "maharaj_bada"],
+          avoidStairs: false
+        });
+        const t3Pass =
+          t3Res.embedded_merchants.length >= 1 &&
+          t3Res.embedded_merchants.some((m) => m.walking_distance_m <= 800);
+
+        return {
+          t1: { pass: t1Pass, res: t1Res },
+          t2: { pass: t2Pass, res: t2Res },
+          t3: { pass: t3Pass, res: t3Res },
+          allPass: t1Pass && t2Pass && t3Pass
+        };
+      }
+
+      // ==========================================
+      // UI & MAP ORCHESTRATION CONTROLLER
+      // ==========================================
+      let map = null;
+      let activeRouteLayer = null;
+      let monumentMarkersGroup = null;
+      let merchantMarkersGroup = null;
+      let stairClimbLayer = null;
+      let urvaiRampLayer = null;
+
+      // Color mapping for agencies
+      const AGENCY_COLORS = {
+        "ASI Bhopal Circle": "#dc2626",
+        "MP State Archaeology": "#7c3aed",
+        "Scindia Devasthan Trust (Private)": "#d97706",
+        "Gwalior Municipal Corp (GSCDCL)": "#059669",
+        "Indian Railways": "#2563eb",
+        "ASI / Municipal": "#dc2626",
+        "Ustad Hafiz Ali Khan Memorial Trust": "#0284c7"
+      };
+
+      function initLeafletMap() {
+        // Initialize map centered on Gwalior Fort ridge
+        map = L.map('map', {
+          center: [26.225, 78.173],
+          zoom: 13,
+          zoomControl: true
+        });
+
+        // Esri WorldStreetMap tiles (clean, reliable, open)
+        L.tileLayer(
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+          {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USGS, DeLorme, NAVTEQ',
+            maxZoom: 18
+          }
+        ).addTo(map);
+
+        monumentMarkersGroup = L.layerGroup().addTo(map);
+        merchantMarkersGroup = L.layerGroup().addTo(map);
+
+        // Add persistent visual representations of the topographical cliff constraints:
+        // 1. Excluded pedestrian stairs: Eastern base / Gujari Mahal gate -> Hathi Pol -> Man Mandir (100m vertical climb)
+        const cliffStairCoords = [
+          [26.2312, 78.1725], // Gujari Mahal / Eastern Gwalior Gate
+          [26.2308, 78.1710], // Hathi Pol (Elephant Gate) Stairs
+          [26.2304, 78.1692]  // Man Mandir Palace Entrance
+        ];
+
+        stairClimbLayer = L.polyline(cliffStairCoords, {
+          color: '#ef4444',
+          weight: 4,
+          dashArray: '3, 6',
+          opacity: 0.85
+        }).addTo(map);
+
+        stairClimbLayer.bindTooltip(
+          '<div class="font-bold text-red-600">⚠️ 100m Sandstone Cliff Stairs (Hathi Pol)</div>' +
+          '<div class="text-[11px] text-slate-700">Steep pedestrian climb. Excluded when "Avoid Steep Stairs" is active.</div>',
+          { sticky: true }
+        );
+
+        // 2. Urvai Gate Vehicular Sandstone Ramp: Western gentle vehicular approach
+        const urvaiRampCoords = [
+          [26.2155, 78.1633], // Gopachal / Urvai Base
+          [26.2200, 78.1650], // Urvai Gate Cut
+          [26.2240, 78.1665], // Plateau Spine
+          [26.2304, 78.1692]  // Man Mandir Plateau
+        ];
+
+        urvaiRampLayer = L.polyline(urvaiRampCoords, {
+          color: '#10b981',
+          weight: 3,
+          dashArray: '4, 6',
+          opacity: 0.7
+        }).addTo(map);
+
+        urvaiRampLayer.bindTooltip(
+          '<div class="font-bold text-emerald-700">♿ Urvai Gate Vehicular Sandstone Ramp</div>' +
+          '<div class="text-[11px] text-slate-700">Step-free paved vehicular ramp to the 100m fort plateau.</div>',
+          { sticky: true }
+        );
+      }
+
+      function focusNodeOnMap(nodeId) {
+        const node = GWALIOR_NODES[nodeId];
+        if (!node || !map) return;
+        if (window.innerWidth < 1024) switchMobileTab('map');
+        map.setView(node.coords, 16);
+        const marker = markerLookup[nodeId];
+        if (marker) {
+          marker.openPopup();
+        }
+      }
+
+      window.focusNodeOnMap = focusNodeOnMap;
+
+      function populateCandidateCheckboxes(preserveSelections = false) {
+        const container = document.getElementById('candidate-list');
+        const originId = document.getElementById('select-origin') ? document.getElementById('select-origin').value : 'gwalior_junction';
+
+        const previouslyChecked = preserveSelections ? getSelectedCandidates() : null;
+        container.innerHTML = '';
+
+        const nodeKeys = Object.keys(GWALIOR_NODES).filter((k) => k !== originId);
+
+        // Recommended default selection
+        const defaultSelected = [
+          'man_mandir_palace',
+          'gujari_mahal',
+          'sas_bahu_temple',
+          'teli_ka_mandir',
+          'jai_vilas_palace',
+          'tomb_of_tansen',
+          'maharaj_bada'
+        ];
+
+        nodeKeys.forEach((key) => {
+          const node = GWALIOR_NODES[key];
+          const isChecked = previouslyChecked !== null ? previouslyChecked.includes(key) : defaultSelected.includes(key);
+
+          const div = document.createElement('div');
+          div.className =
+            'flex items-center justify-between p-1.5 rounded hover:bg-white border border-transparent hover:border-slate-200 transition group';
+
+          div.innerHTML = `
+            <label class="flex items-center gap-2 cursor-pointer flex-1 mr-1 select-none py-0.5">
+              <input type="checkbox" value="${key}" ${isChecked ? 'checked' : ''} class="candidate-cb h-3.5 w-3.5 rounded text-blue-600 border-slate-300 cursor-pointer shrink-0" />
+              <span class="text-slate-800 font-medium leading-tight">${node.name}</span>
+            </label>
+            <div class="flex items-center gap-1 shrink-0">
+              <span class="text-[9px] px-1.5 py-0.5 rounded font-mono ${
+                node.category === 'museum' ? 'bg-purple-100 text-purple-700' :
+                node.category === 'peripheral_circuit' ? 'bg-rose-100 text-rose-700' :
+                node.category === 'civic_culinary' ? 'bg-emerald-100 text-emerald-700' :
+                'bg-blue-100 text-blue-700'
+              }">
+                ${node.category === 'peripheral_circuit' ? '35km peripheral' : node.jurisdiction.split(' ')[0]}
+              </span>
+              <button
+                type="button"
+                class="btn-focus-site p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition cursor-pointer"
+                data-node="${key}"
+                title="Locate ${node.name} on map"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            </div>
+          `;
+
+          const focusBtn = div.querySelector('.btn-focus-site');
+          if (focusBtn) {
+            focusBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              focusNodeOnMap(key);
+            });
+          }
+
+          container.appendChild(div);
+        });
+      }
+
+      function getSelectedCandidates() {
+        const checkboxes = document.querySelectorAll('.candidate-cb:checked');
+        return Array.from(checkboxes).map((cb) => cb.value);
+      }
+
+      function updateDynamicAlerts() {
+        const day = document.getElementById('select-day').value;
+        const avoidStairs = document.getElementById('toggle-avoid-stairs').checked;
+        const budgetHours = parseFloat(document.getElementById('input-budget-slider').value);
+        const selectedCandidates = getSelectedCandidates();
+
+        const alertsContainer = document.getElementById('alerts-container');
+        alertsContainer.innerHTML = '';
+
+        // Monday Alert: Gujari Mahal & Jai Vilas Palace closures
+        if (day === 'Monday') {
+          const alert = document.createElement('div');
+          alert.className = 'p-2.5 bg-red-50 border border-red-200 text-red-800 rounded-lg text-[11px] leading-tight space-y-1';
+          alert.innerHTML = `
+            <div class="font-bold flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>Monday Multi-Agency Closures Active</span>
+            </div>
+            <div>• <b>Gujari Mahal State Museum</b> CLOSED on Mondays (MP State Archaeology Rule)</div>
+            <div>• <b>Jai Vilas Palace &amp; Museum</b> CLOSED on Mondays (Scindia Trust Rule)</div>
+          `;
+          alertsContainer.appendChild(alert);
+        }
+
+        // Sunday Alert: Sarod Ghar closure
+        if (day === 'Sunday' && selectedCandidates.includes('sarod_ghar')) {
+          const alert = document.createElement('div');
+          alert.className = 'p-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-[11px] leading-tight';
+          alert.innerHTML = `
+            <b>Sarod Ghar (Museum of Musical Heritage)</b> CLOSED on Sundays (Ustad Hafiz Ali Khan Memorial Trust Rule).
+          `;
+          alertsContainer.appendChild(alert);
+        }
+
+        // Friday Notice: Central Archaeological Museum (ASI Museum)
+        if (day === 'Friday') {
+          const alert = document.createElement('div');
+          alert.className = 'p-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-[11px] leading-tight';
+          alert.innerHTML = `
+            <b>ℹ️ Friday Schedule:</b> Central Archaeological Site Museum (ASI Fort Museum) is CLOSED on Fridays (ASI Bhopal Circle Rule). Open-air fort monuments remain accessible.
+          `;
+          alertsContainer.appendChild(alert);
+        }
+
+        // Mobility / Avoid Stairs Active Alert
+        if (avoidStairs) {
+          const alert = document.createElement('div');
+          alert.className = 'p-2.5 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-[11px] leading-tight';
+          alert.innerHTML = `
+            <div class="font-bold flex items-center gap-1">
+              <span>♿ FR-7 Mobility Safeguard Active</span>
+            </div>
+            <div>Excluding steep 100m sandstone cliff stairs. Man Mandir routed exclusively via <b>Urvai Gate Vehicular Ramp</b>.</div>
+          `;
+          alertsContainer.appendChild(alert);
+        }
+
+        // Peripheral Circuit Guardrail Warning
+        if (selectedCandidates.includes('bateshwar_temples') && budgetHours < 5.0) {
+          const alert = document.createElement('div');
+          alert.className = 'p-2.5 bg-rose-50 border border-rose-300 text-rose-900 rounded-lg text-[11px] leading-tight';
+          alert.innerHTML = `
+            <b>⛔ TC-03 Guardrail Active:</b> Bateshwar requires >= 5.0h due to 35km highway transit. Current budget (${budgetHours}h) is insufficient.
+          `;
+          alertsContainer.appendChild(alert);
+        }
+      }
+
+      function executeOptimization() {
+        const originId = document.getElementById('select-origin').value;
+        const day = document.getElementById('select-day').value;
+        const startTime = document.getElementById('input-start-time').value;
+        const budgetHours = parseFloat(document.getElementById('input-budget-slider').value);
+        const avoidStairs = document.getElementById('toggle-avoid-stairs').checked;
+        const embedOdop = document.getElementById('toggle-embed-odop').checked;
+        const candidateIds = getSelectedCandidates();
+
+        updateDynamicAlerts();
+
+        const result = planMargdarshakItinerary({
+          timeBudgetHours: budgetHours,
+          startTimeStr: startTime,
+          dayOfWeek: day,
+          originNodeId: originId,
+          candidateNodeIds: candidateIds,
+          avoidStairs: avoidStairs
+        });
+
+        renderResults(result, originId, embedOdop, avoidStairs);
+      }
+
+      function renderResults(result, originId, embedOdop, avoidStairs) {
+        // 1. HUD & Badges
+        const statusBadge = document.getElementById('badge-feasibility');
+        const hudIndicator = document.getElementById('route-status-indicator');
+        const hudStatusText = document.getElementById('route-status-text');
+        const hudStats = document.getElementById('hud-stats');
+
+        if (result.status === "FEASIBLE") {
+          statusBadge.textContent = "FEASIBLE";
+          statusBadge.className = "text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
+          hudIndicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+          hudStatusText.textContent = "Route Feasible";
+          hudStats.textContent = `${result.itinerary.length} Stops · ${result.total_elapsed_mins} mins total`;
+        } else {
+          statusBadge.textContent = result.status === "REJECTED" ? "REJECTED" : "NO ROUTE";
+          statusBadge.className = "text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-800";
+          hudIndicator.className = "w-2.5 h-2.5 rounded-full bg-red-500";
+          hudStatusText.textContent = result.status === "REJECTED" ? "Constraint Rejected" : "No Feasible Route";
+          hudStats.textContent = `0 Stops · Budget Overrun`;
+        }
+
+        // 2. Budget Metrics
+        document.getElementById('stat-return-time').textContent = result.return_to_origin_time || "--:--";
+        document.getElementById('stat-elapsed-mins').textContent = result.total_elapsed_mins || 0;
+        document.getElementById('stat-budget-mins').textContent = result.total_budget_mins || 0;
+
+        const percentage = result.total_budget_mins > 0
+          ? Math.min(100, Math.round((result.total_elapsed_mins / result.total_budget_mins) * 100))
+          : 0;
+
+        const progressBar = document.getElementById('stat-progress-bar');
+        progressBar.style.width = `${percentage}%`;
+        if (percentage > 95) {
+          progressBar.className = "bg-amber-500 h-2 rounded-full transition-all duration-300";
+        } else {
+          progressBar.className = "bg-blue-600 h-2 rounded-full transition-all duration-300";
+        }
+
+        document.getElementById('stat-transit-split').textContent =
+          `Transit: ${result.total_transit_mins}m · Sightseeing: ${result.total_visit_mins}m`;
+
+        const slack = (result.total_budget_mins || 0) - (result.total_elapsed_mins || 0);
+        const slackEl = document.getElementById('stat-slack-buffer');
+        if (slack >= 0) {
+          slackEl.textContent = `+${slack}m safe buffer`;
+          slackEl.className = "text-emerald-700 font-semibold";
+        } else {
+          slackEl.textContent = `${slack}m overrun`;
+          slackEl.className = "text-red-700 font-semibold";
+        }
+
+        // 3. Timeline Rendering
+        const timelineContainer = document.getElementById('timeline-container');
+        timelineContainer.innerHTML = '';
+        document.getElementById('timeline-stop-count').textContent = `${result.itinerary.length} Stops`;
+
+        if (result.itinerary.length === 0) {
+          timelineContainer.innerHTML = `
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg text-center text-slate-500">
+              <p class="font-medium">No stops could be scheduled under current constraints.</p>
+              <p class="text-[10px] mt-1 text-slate-400">${result.reason || "Try increasing budget slider or selecting other days."}</p>
+            </div>
+          `;
+        } else {
+          // Origin start card
+          const originNode = GWALIOR_NODES[originId];
+          const startCard = document.createElement('div');
+          startCard.className = "p-2.5 bg-blue-50/60 border border-blue-200 rounded-lg text-[11px] flex items-center justify-between cursor-pointer hover:bg-blue-100/60 transition";
+          startCard.title = "Click to focus origin on map";
+          startCard.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px]">O</span>
+              <div>
+                <span class="font-bold text-slate-900">${originNode.name}</span>
+                <div class="text-[10px] text-slate-500">Departure Hub · Trip Start: ${document.getElementById('input-start-time').value}</div>
+              </div>
+            </div>
+            <span class="font-mono text-blue-700 font-semibold text-[10px]">Start</span>
+          `;
+          startCard.addEventListener('click', () => {
+            if (window.innerWidth < 1024) switchMobileTab('map');
+            if (originMarkerRef && map) {
+              map.setView(originNode.coords, 15);
+              originMarkerRef.openPopup();
+            }
+          });
+          timelineContainer.appendChild(startCard);
+
+          result.itinerary.forEach((stop) => {
+            const stopCard = document.createElement('div');
+            stopCard.className = "p-3 bg-white border border-slate-200 rounded-lg shadow-xs hover:border-blue-400 hover:shadow-sm transition space-y-1.5 cursor-pointer";
+            stopCard.title = "Click to focus stop on map";
+
+            // Nearby merchants for this stop
+            const stopMerchants = embedOdop ? (GWALIOR_NODES[stop.node_id].merchants || []) : [];
+            const merchantBadges = stopMerchants
+              .map(
+                (m) => `
+                <div class="mt-1 text-[10px] px-2 py-1 bg-emerald-50 text-emerald-800 rounded border border-emerald-200 flex items-center justify-between">
+                  <span class="font-semibold">${m.name} (${m.type})</span>
+                  <span class="font-mono text-emerald-700">${m.distance_m}m walk</span>
+                </div>
+              `
+              )
+              .join('');
+
+            stopCard.innerHTML = `
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-start gap-2">
+                  <span class="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] mt-0.5 shrink-0">
+                    ${stop.stop_number}
+                  </span>
+                  <div>
+                    <div class="font-bold text-slate-900 leading-tight">${stop.name}</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                      <span>${stop.jurisdiction}</span>
+                      <span>·</span>
+                      <span class="font-mono text-slate-700 font-semibold">₹${stop.entry_fee_inr} fee</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right shrink-0 font-mono text-[11px]">
+                  <div class="font-bold text-slate-900">${stop.arrival_time}</div>
+                  <div class="text-[10px] text-slate-500">to ${stop.departure_time}</div>
+                </div>
+              </div>
+
+              <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-600 font-mono">
+                <span class="flex items-center gap-1">
+                  <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  ${stop.transit_mins}m transit (${stop.transit_mode})
+                </span>
+                <span class="text-slate-700 font-medium">${stop.visit_duration_mins}m stay</span>
+              </div>
+
+              ${merchantBadges}
+            `;
+
+            stopCard.addEventListener('click', () => {
+              if (window.innerWidth < 1024) switchMobileTab('map');
+              const marker = markerLookup[stop.node_id];
+              if (marker && map) {
+                map.setView(GWALIOR_NODES[stop.node_id].coords, 16);
+                marker.openPopup();
+              }
+            });
+
+            timelineContainer.appendChild(stopCard);
+          });
+
+          // Return to origin card
+          const returnCard = document.createElement('div');
+          returnCard.className = "p-2.5 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] flex items-center justify-between cursor-pointer hover:bg-emerald-100/70 transition";
+          returnCard.title = "Click to focus return station on map";
+          returnCard.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px]">R</span>
+              <div>
+                <span class="font-bold text-slate-900">${originNode.name}</span>
+                <div class="text-[10px] text-slate-500">Return Arrival (Knapsack Train Buffer)</div>
+              </div>
+            </div>
+            <span class="font-mono text-emerald-800 font-bold">${result.return_to_origin_time}</span>
+          `;
+          returnCard.addEventListener('click', () => {
+            if (window.innerWidth < 1024) switchMobileTab('map');
+            if (originMarkerRef && map) {
+              map.setView(originNode.coords, 15);
+              originMarkerRef.openPopup();
+            }
+          });
+          timelineContainer.appendChild(returnCard);
+        }
+
+        // 4. Multi-Agency Tariff Breakdown (FR-4)
+        const tariffBody = document.getElementById('tariff-table-body');
+        tariffBody.innerHTML = '';
+        document.getElementById('tariff-total-badge').textContent = `₹${result.total_cost_sum_inr} Total`;
+
+        const standardAgencies = [
+          "ASI Bhopal Circle",
+          "MP State Archaeology",
+          "Scindia Devasthan Trust (Private)",
+          "Ustad Hafiz Ali Khan Memorial Trust",
+          "Gwalior Municipal Corp (GSCDCL)"
+        ];
+        const allAgencies = Array.from(new Set([...standardAgencies, ...Object.keys(result.total_cost_by_agency)]));
+
+        allAgencies.forEach((agency) => {
+          const fee = result.total_cost_by_agency[agency] || 0;
+          if (standardAgencies.includes(agency) || fee > 0) {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-100/50";
+            tr.innerHTML = `
+              <td class="py-1.5 text-slate-700 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full" style="background-color: ${AGENCY_COLORS[agency] || '#64748b'}"></span>
+                <span>${agency}</span>
+              </td>
+              <td class="py-1.5 text-right font-mono font-bold text-slate-900">₹${fee}</td>
+            `;
+            tariffBody.appendChild(tr);
+          }
+        });
+
+        // 5. Embedded Artisans & Food Roster
+        const merchantsSection = document.getElementById('merchants-section');
+        const merchantsContainer = document.getElementById('merchants-container');
+        merchantsContainer.innerHTML = '';
+
+        if (!embedOdop || result.embedded_merchants.length === 0) {
+          merchantsContainer.innerHTML = `
+            <div class="text-slate-500 text-[11px] italic">
+              ${embedOdop ? "No verified artisans within 800m of the selected stops." : "ODOP & Food embedding toggled off."}
+            </div>
+          `;
+        } else {
+          result.embedded_merchants.forEach((m) => {
+            const card = document.createElement('div');
+            card.className = "p-2 bg-white rounded border border-slate-200 flex items-center justify-between text-[11px] hover:border-emerald-400 hover:shadow-xs transition cursor-pointer";
+            card.title = `Click to locate ${m.merchant_name} on map`;
+            card.innerHTML = `
+              <div>
+                <div class="flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full ${m.type === 'Culinary Heritage' ? 'bg-emerald-600' : 'bg-cyan-600'}"></span>
+                  <span class="font-bold text-slate-900">${m.merchant_name}</span>
+                </div>
+                <div class="text-[10px] text-slate-500 mt-0.5">${m.type} · Near ${m.near_stop}</div>
+              </div>
+              <span class="font-mono text-emerald-700 font-semibold px-2 py-0.5 bg-emerald-50 rounded border border-emerald-100 text-[10px]">
+                ${m.walking_distance_m}m
+              </span>
+            `;
+
+            card.addEventListener('click', () => {
+              if (window.innerWidth < 1024) switchMobileTab('map');
+              const circle = merchantMarkerLookup[m.merchant_name];
+              if (circle && map) {
+                map.setView(circle.getLatLng(), 16);
+                circle.openPopup();
+              }
+            });
+
+            merchantsContainer.appendChild(card);
+          });
+        }
+
+        // 6. Audit Log: Rejections & Exclusions
+        const auditLogContainer = document.getElementById('audit-log-container');
+        auditLogContainer.innerHTML = '';
+
+        if (result.rejected_closures.length === 0 && result.excluded_stairs.length === 0 && !result.reason) {
+          auditLogContainer.innerHTML = `<div class="text-slate-500 italic">All candidate nodes satisfied deterministic opening hours &amp; mobility filters.</div>`;
+        } else {
+          if (result.reason) {
+            const row = document.createElement('div');
+            row.className = "text-red-700 font-medium";
+            row.textContent = `• Guardrail Violation: ${result.reason}`;
+            auditLogContainer.appendChild(row);
+          }
+          result.rejected_closures.forEach((r) => {
+            const row = document.createElement('div');
+            row.className = "text-amber-800";
+            row.textContent = `• Closed Filter: ${r.node} -> ${r.reason}`;
+            auditLogContainer.appendChild(row);
+          });
+          result.excluded_stairs.forEach((nodeId) => {
+            const node = GWALIOR_NODES[nodeId];
+            const row = document.createElement('div');
+            row.className = "text-blue-800";
+            row.textContent = `• Mobility Bypass: ${node ? node.name : nodeId} -> Steep cliff stairs excluded`;
+            auditLogContainer.appendChild(row);
+          });
+        }
+
+        // 7. Leaflet Map Redraw
+        redrawMapLayers(result, originId, embedOdop, avoidStairs);
+      }
+
+      let showAllHeritageSites = true;
+      let merchantMarkerLookup = {};
+      let lastCalculatedResult = null;
+      let lastOriginId = 'gwalior_junction';
+      let lastEmbedOdop = true;
+      let lastAvoidStairs = false;
+
+      window.addCandidateNodeAndOptimize = function(nodeId) {
+        const cb = document.querySelector(`.candidate-cb[value="${nodeId}"]`);
+        if (cb) {
+          cb.checked = true;
+          executeOptimization();
+          const marker = markerLookup[nodeId];
+          if (marker) marker.openPopup();
+        }
+      };
+
+      function redrawMapLayers(result, originId, embedOdop, avoidStairs) {
+        if (!map) return;
+
+        lastCalculatedResult = result;
+        lastOriginId = originId;
+        lastEmbedOdop = embedOdop;
+        lastAvoidStairs = avoidStairs;
+
+        // Clear existing dynamic route & markers
+        if (activeRouteLayer) {
+          map.removeLayer(activeRouteLayer);
+          activeRouteLayer = null;
+        }
+        monumentMarkersGroup.clearLayers();
+        merchantMarkersGroup.clearLayers();
+        markerLookup = {};
+        merchantMarkerLookup = {};
+
+        // Emphasize or de-emphasize excluded cliff stairs on mobility mode
+        if (stairClimbLayer) {
+          if (avoidStairs) {
+            stairClimbLayer.setStyle({ color: '#dc2626', weight: 4.5, opacity: 0.95, dashArray: '4, 6' });
+          } else {
+            stairClimbLayer.setStyle({ color: '#ef4444', weight: 3, opacity: 0.65, dashArray: '3, 6' });
+          }
+        }
+        if (urvaiRampLayer) {
+          if (avoidStairs) {
+            urvaiRampLayer.setStyle({ color: '#059669', weight: 4, opacity: 0.95, dashArray: '4, 6' });
+          } else {
+            urvaiRampLayer.setStyle({ color: '#10b981', weight: 3, opacity: 0.7, dashArray: '4, 6' });
+          }
+        }
+
+        const routeCoords = [];
+        const allRelevantCoords = [];
+
+        // 1. Origin Marker
+        const originNode = GWALIOR_NODES[originId];
+        routeCoords.push(originNode.coords);
+        allRelevantCoords.push(originNode.coords);
+
+        let originLabel = 'STN';
+        if (originId === 'maharaj_bada') originLabel = 'BADA';
+        else if (originId === 'tomb_of_tansen') originLabel = 'HAZIRA';
+
+        const originIcon = L.divIcon({
+          className: 'custom-marker origin',
+          html: `<span>${originLabel}</span>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+
+        const originMarker = L.marker(originNode.coords, { icon: originIcon }).addTo(monumentMarkersGroup);
+        originMarkerRef = originMarker;
+        markerLookup[originId] = originMarker;
+        originMarker.bindPopup(`
+          <div class="font-sans">
+            <div class="text-[10px] font-bold text-blue-600 uppercase tracking-wide">Departure &amp; Return Hub</div>
+            <h4 class="font-bold text-slate-900 text-sm mt-0.5">${originNode.name}</h4>
+            <p class="text-[11px] text-slate-600 mt-1">Primary departure point and knapsack train buffer guarantee hub.</p>
+          </div>
+        `);
+        originMarker.bindTooltip(`Origin: ${originNode.name}`, { sticky: true });
+
+        // 2. Active Itinerary Stops
+        const itineraryNodeIds = new Set(result.itinerary.map((s) => s.node_id));
+        result.itinerary.forEach((stop) => {
+          const node = GWALIOR_NODES[stop.node_id];
+          routeCoords.push(node.coords);
+          allRelevantCoords.push(node.coords);
+
+          let markerClass = 'asi';
+          if (stop.jurisdiction.includes('MP State')) markerClass = 'mp-state';
+          else if (stop.jurisdiction.includes('Scindia')) markerClass = 'scindia';
+          else if (stop.jurisdiction.includes('Municipal')) markerClass = 'municipal';
+
+          const stopIcon = L.divIcon({
+            className: `custom-marker ${markerClass}`,
+            html: `<span>${stop.stop_number}</span>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          });
+
+          const marker = L.marker(node.coords, { icon: stopIcon }).addTo(monumentMarkersGroup);
+          markerLookup[stop.node_id] = marker;
+
+          marker.bindPopup(`
+            <div class="font-sans text-xs">
+              <div class="text-[10px] font-bold text-blue-600 uppercase tracking-wide">Stop #${stop.stop_number} in Active Itinerary</div>
+              <div class="font-bold text-slate-900 text-sm leading-tight mt-0.5">${stop.name}</div>
+              <div class="text-slate-500 font-semibold text-[11px] mt-0.5">${stop.jurisdiction}</div>
+              <div class="mt-2 text-[11px] space-y-0.5 border-t border-slate-100 pt-1.5 font-mono">
+                <div><b>Arrival:</b> ${stop.arrival_time} · <b>Dep:</b> ${stop.departure_time}</div>
+                <div><b>Stay:</b> ${stop.visit_duration_mins} mins · <b>Fee:</b> ₹${stop.entry_fee_inr}</div>
+                <div class="text-slate-500 font-sans italic text-[10px] mt-1">${stop.access_note}</div>
+              </div>
+            </div>
+          `);
+          marker.bindTooltip(`Stop #${stop.stop_number}: ${stop.name}`, { sticky: true });
+        });
+
+        // 3. User-Selected Candidate Monuments that were NOT in the active itinerary
+        const selectedCandidateIds = getSelectedCandidates();
+        const day = document.getElementById('select-day').value;
+        const budgetHours = parseFloat(document.getElementById('input-budget-slider').value);
+
+        selectedCandidateIds.forEach((nodeId) => {
+          if (nodeId === originId || itineraryNodeIds.has(nodeId)) return;
+          const node = GWALIOR_NODES[nodeId];
+          if (!node) return;
+
+          allRelevantCoords.push(node.coords);
+
+          const closedRecord = result.rejected_closures.find(
+            (r) => r.nodeId === nodeId || (r.node && r.node.includes(node.name))
+          );
+          const isStairsExcluded = result.excluded_stairs.includes(nodeId) || (avoidStairs && node.requires_stairs);
+          const isGuardrailRejected = node.category === 'peripheral_circuit' && budgetHours < 5.0;
+
+          let markerClass = 'candidate-unscheduled';
+          let badgeLabel = '⏳';
+          let statusTitle = 'Selected Candidate (Not in Route)';
+          let explanationHtml = '';
+
+          if (closedRecord) {
+            markerClass = 'candidate-closed';
+            badgeLabel = '✕';
+            statusTitle = `Selected Site: CLOSED on ${day}s`;
+            explanationHtml = `
+              <div class="p-1.5 bg-red-50 text-red-800 rounded border border-red-200 text-[11px] mt-1.5 leading-tight">
+                <b>Closed Rule:</b> ${closedRecord.reason}
+              </div>
+              <p class="text-[10px] text-slate-500 mt-1">Select a different day of the week to visit this monument.</p>
+            `;
+          } else if (isStairsExcluded) {
+            markerClass = 'candidate-stairs';
+            badgeLabel = '♿';
+            statusTitle = 'Selected Site: Steep Stairs Excluded';
+            explanationHtml = `
+              <div class="p-1.5 bg-blue-50 text-blue-800 rounded border border-blue-200 text-[11px] mt-1.5 leading-tight">
+                <b>Mobility Bypass:</b> Requires 100m cliff stairs climb. Bypassed because <b>Avoid Steep Stairs</b> is active.
+              </div>
+              <p class="text-[10px] text-slate-500 mt-1">Uncheck 'Avoid Steep Stairs' if you wish to allow the eastern pedestrian stair climb.</p>
+            `;
+          } else if (isGuardrailRejected) {
+            markerClass = 'candidate-closed';
+            badgeLabel = '35km';
+            statusTitle = 'Selected Site: Peripheral Circuit Guardrail';
+            explanationHtml = `
+              <div class="p-1.5 bg-rose-50 text-rose-800 rounded border border-rose-200 text-[11px] mt-1.5 leading-tight">
+                <b>TC-03 Guardrail:</b> Bateshwar requires >= 5.0h due to 35km highway transit. Current budget (${budgetHours}h) is insufficient.
+              </div>
+              <p class="text-[10px] text-slate-500 mt-1">Increase the Time Budget Slider to 5.0h+ to unlock this peripheral circuit.</p>
+            `;
+          } else {
+            markerClass = 'candidate-unscheduled';
+            badgeLabel = '⏳';
+            statusTitle = 'Selected Site: Budget Limit Reached';
+            explanationHtml = `
+              <div class="p-1.5 bg-amber-50 text-amber-800 rounded border border-amber-200 text-[11px] mt-1.5 leading-tight">
+                <b>Knapsack Limit:</b> Cannot fit this stop (${node.avg_visit_mins}m stay + transit) within current ${budgetHours}h budget and guarantee return to ${originNode.name}.
+              </div>
+              <p class="text-[10px] text-slate-600 font-medium mt-1">💡 Increase the <b>Time Budget Slider</b> to include this monument.</p>
+            `;
+          }
+
+          const candidateIcon = L.divIcon({
+            className: `custom-marker ${markerClass}`,
+            html: `<span>${badgeLabel}</span>`,
+            iconSize: [26, 26],
+            iconAnchor: [13, 13]
+          });
+
+          const marker = L.marker(node.coords, { icon: candidateIcon }).addTo(monumentMarkersGroup);
+          markerLookup[nodeId] = marker;
+
+          marker.bindPopup(`
+            <div class="font-sans text-xs">
+              <div class="font-bold text-slate-900 text-sm leading-tight">${node.name}</div>
+              <div class="text-slate-500 text-[11px] mt-0.5">${node.jurisdiction} · ₹${node.entry_fee_inr} fee</div>
+              <div class="mt-2 font-bold text-[11px] ${closedRecord ? 'text-red-700' : isStairsExcluded ? 'text-blue-700' : 'text-amber-700'}">${statusTitle}</div>
+              ${explanationHtml}
+            </div>
+          `);
+          marker.bindTooltip(`Selected: ${node.name} (${badgeLabel})`, { sticky: true });
+        });
+
+        // 4. Unselected Heritage Sites (when showAllHeritageSites is active)
+        if (showAllHeritageSites) {
+          Object.keys(GWALIOR_NODES).forEach((nodeId) => {
+            if (nodeId === originId || itineraryNodeIds.has(nodeId) || selectedCandidateIds.includes(nodeId)) return;
+            const node = GWALIOR_NODES[nodeId];
+
+            const unselectedIcon = L.divIcon({
+              className: 'custom-marker candidate-unselected',
+              html: `<span>+</span>`,
+              iconSize: [22, 22],
+              iconAnchor: [11, 11]
+            });
+
+            const marker = L.marker(node.coords, { icon: unselectedIcon }).addTo(monumentMarkersGroup);
+            markerLookup[nodeId] = marker;
+
+            marker.bindPopup(`
+              <div class="font-sans text-xs">
+                <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Heritage Site (Unselected)</div>
+                <div class="font-bold text-slate-900 text-sm mt-0.5">${node.name}</div>
+                <div class="text-slate-500 text-[11px] mt-0.5">${node.jurisdiction} · Fee: ₹${node.entry_fee_inr} · ~${node.avg_visit_mins}m stay</div>
+                <button
+                  type="button"
+                  onclick="addCandidateNodeAndOptimize('${nodeId}')"
+                  class="mt-2.5 w-full py-1.5 px-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded transition shadow-xs flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  ➕ Add to My Itinerary
+                </button>
+              </div>
+            `);
+            marker.bindTooltip(`Heritage Site: ${node.name} (Click to add)`, { sticky: true });
+          });
+        }
+
+        // Loop back to origin
+        if (result.itinerary.length > 0) {
+          routeCoords.push(originNode.coords);
+
+          // Plot Polyline for Active Route (Blue Dashed Vector)
+          activeRouteLayer = L.polyline(routeCoords, {
+            color: '#2563eb',
+            weight: 4,
+            opacity: 0.85,
+            dashArray: '6, 8'
+          }).addTo(map);
+
+          // Fit map bounds to show route cleanly
+          const bounds = L.latLngBounds(routeCoords);
+          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        } else {
+          if (allRelevantCoords.length > 1) {
+            map.fitBounds(L.latLngBounds(allRelevantCoords), { padding: [50, 50], maxZoom: 15 });
+          } else {
+            map.setView(originNode.coords, 14);
+          }
+        }
+
+        // Plot Micro-Merchants Pins
+        if (embedOdop && result.embedded_merchants) {
+          result.embedded_merchants.forEach((m) => {
+            const hostNode = Object.values(GWALIOR_NODES).find((v) => v.name === m.near_stop);
+            if (hostNode) {
+              const mLat = hostNode.coords[0] + 0.0012;
+              const mLon = hostNode.coords[1] + 0.0012;
+
+              const isCulinary = m.type === 'Culinary Heritage';
+              const markerColor = isCulinary ? '#15803d' : '#0891b2';
+
+              const circle = L.circleMarker([mLat, mLon], {
+                radius: 6,
+                color: markerColor,
+                fillColor: markerColor,
+                fillOpacity: 0.9,
+                weight: 2
+              }).addTo(merchantMarkersGroup);
+
+              merchantMarkerLookup[m.merchant_name] = circle;
+
+              circle.bindPopup(`
+                <div class="font-sans text-xs">
+                  <div class="font-bold text-emerald-900">${m.merchant_name}</div>
+                  <div class="text-[11px] text-slate-600">${m.type}</div>
+                  <div class="text-[10px] text-slate-500 mt-1">${m.walking_distance_m}m walk from ${m.near_stop}</div>
+                </div>
+              `);
+              circle.bindTooltip(`ODOP / Local: ${m.merchant_name}`, { sticky: true });
+            }
+          });
+        }
+      }
+
+      // ==========================================
+      // EVENT LISTENERS & PRESET HANDLERS
+      // ==========================================
+      window.addEventListener('DOMContentLoaded', () => {
+        initLeafletMap();
+        populateCandidateCheckboxes();
+
+        const slider = document.getElementById('input-budget-slider');
+        const budgetDisplay = document.getElementById('budget-display');
+
+        slider.addEventListener('input', (e) => {
+          const val = parseFloat(e.target.value).toFixed(1);
+          const mins = Math.round(val * 60);
+          budgetDisplay.textContent = `${val}h (${mins} mins)`;
+          executeOptimization();
+        });
+
+        document.getElementById('select-day').addEventListener('change', () => {
+          executeOptimization();
+        });
+
+        document.getElementById('select-origin').addEventListener('change', () => {
+          populateCandidateCheckboxes(true);
+          executeOptimization();
+        });
+
+        document.getElementById('input-start-time').addEventListener('change', () => {
+          executeOptimization();
+        });
+
+        document.getElementById('toggle-avoid-stairs').addEventListener('change', () => {
+          executeOptimization();
+        });
+
+        document.getElementById('toggle-embed-odop').addEventListener('change', () => {
+          executeOptimization();
+        });
+
+        document.getElementById('candidate-list').addEventListener('change', () => {
+          executeOptimization();
+        });
+
+        document.getElementById('btn-optimize').addEventListener('click', () => {
+          executeOptimization();
+          if (window.innerWidth < 1024) switchMobileTab('map');
+        });
+
+        document.getElementById('btn-quick-optimize').addEventListener('click', () => {
+          executeOptimization();
+          if (window.innerWidth < 1024) switchMobileTab('map');
+        });
+
+        // Select All / Clear candidates
+        document.getElementById('btn-select-all').addEventListener('click', () => {
+          document.querySelectorAll('.candidate-cb').forEach((cb) => (cb.checked = true));
+          executeOptimization();
+        });
+        document.getElementById('btn-select-none').addEventListener('click', () => {
+          document.querySelectorAll('.candidate-cb').forEach((cb) => (cb.checked = false));
+          executeOptimization();
+        });
+
+        // Reset defaults
+        document.getElementById('btn-reset-defaults').addEventListener('click', () => {
+          document.getElementById('select-origin').value = 'gwalior_junction';
+          document.getElementById('select-day').value = 'Wednesday';
+          document.getElementById('input-start-time').value = '10:00';
+          slider.value = '4.0';
+          budgetDisplay.textContent = '4.0h (240 mins)';
+          document.getElementById('toggle-avoid-stairs').checked = false;
+          document.getElementById('toggle-embed-odop').checked = true;
+          populateCandidateCheckboxes();
+          executeOptimization();
+        });
+
+        // Presets:
+        // Test 1: Monday schedule test
+        document.getElementById('preset-test1').addEventListener('click', () => {
+          document.getElementById('select-day').value = 'Monday';
+          slider.value = '5.0';
+          budgetDisplay.textContent = '5.0h (300 mins)';
+          document.getElementById('toggle-avoid-stairs').checked = false;
+          document.getElementById('toggle-embed-odop').checked = true;
+
+          // Select Gujari, Man Mandir, Tansen
+          document.querySelectorAll('.candidate-cb').forEach((cb) => {
+            cb.checked = ['gujari_mahal', 'man_mandir_palace', 'tomb_of_tansen'].includes(cb.value);
+          });
+          executeOptimization();
+        });
+
+        // Test 2: Mobility Urvai Ramp test
+        document.getElementById('preset-test2').addEventListener('click', () => {
+          document.getElementById('select-day').value = 'Wednesday';
+          slider.value = '4.0';
+          budgetDisplay.textContent = '4.0h (240 mins)';
+          document.getElementById('toggle-avoid-stairs').checked = true;
+          document.getElementById('toggle-embed-odop').checked = true;
+
+          // Select Man Mandir, Gujari Mahal, Teli Ka Mandir
+          document.querySelectorAll('.candidate-cb').forEach((cb) => {
+            cb.checked = ['man_mandir_palace', 'gujari_mahal', 'teli_ka_mandir'].includes(cb.value);
+          });
+          executeOptimization();
+        });
+
+        // Test 3: Micro-merchant & culinary test
+        document.getElementById('preset-test3').addEventListener('click', () => {
+          document.getElementById('select-day').value = 'Thursday';
+          document.getElementById('input-start-time').value = '10:30';
+          slider.value = '4.0';
+          budgetDisplay.textContent = '4.0h (240 mins)';
+          document.getElementById('toggle-avoid-stairs').checked = false;
+          document.getElementById('toggle-embed-odop').checked = true;
+
+          // Select Man Mandir, Maharaj Bada
+          document.querySelectorAll('.candidate-cb').forEach((cb) => {
+            cb.checked = ['man_mandir_palace', 'maharaj_bada'].includes(cb.value);
+          });
+          executeOptimization();
+        });
+
+        // Full Circuit Preset
+        document.getElementById('preset-full').addEventListener('click', () => {
+          document.getElementById('select-day').value = 'Wednesday';
+          slider.value = '6.0';
+          budgetDisplay.textContent = '6.0h (360 mins)';
+          document.getElementById('toggle-avoid-stairs').checked = false;
+          document.getElementById('toggle-embed-odop').checked = true;
+
+          document.querySelectorAll('.candidate-cb').forEach((cb) => {
+            cb.checked = cb.value !== 'bateshwar_temples';
+          });
+          executeOptimization();
+        });
+
+        // Acceptance Tests Modal
+        const modal = document.getElementById('modal-tests');
+        document.getElementById('btn-run-tests').addEventListener('click', () => {
+          const testResults = runOfficialAcceptanceTests();
+          modal.classList.remove('hidden');
+        });
+        document.getElementById('btn-close-modal').addEventListener('click', () => {
+          modal.classList.add('hidden');
+        });
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) modal.classList.add('hidden');
+        });
+
+        document.getElementById('btn-apply-test1').addEventListener('click', () => {
+          document.getElementById('preset-test1').click();
+          modal.classList.add('hidden');
+        });
+        document.getElementById('btn-apply-test2').addEventListener('click', () => {
+          document.getElementById('preset-test2').click();
+          modal.classList.add('hidden');
+        });
+        const btnApplyTest3 = document.getElementById('btn-apply-test3');
+        if (btnApplyTest3) {
+          btnApplyTest3.addEventListener('click', () => {
+            document.getElementById('preset-test3').click();
+            modal.classList.add('hidden');
+          });
+        }
+
+        // Map View & Candidate Toggle controls
+        const btnToggleCandidates = document.getElementById('btn-toggle-candidates');
+        const labelToggleCandidates = document.getElementById('label-toggle-candidates');
+        const btnViewFort = document.getElementById('btn-view-fort');
+        const btnViewAll = document.getElementById('btn-view-all');
+
+        if (btnToggleCandidates) {
+          btnToggleCandidates.addEventListener('click', () => {
+            showAllHeritageSites = !showAllHeritageSites;
+            if (labelToggleCandidates) {
+              labelToggleCandidates.textContent = showAllHeritageSites ? "All Sites Shown" : "Selected Only";
+            }
+            if (showAllHeritageSites) {
+              btnToggleCandidates.className =
+                "px-2 py-1 text-[11px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded transition flex items-center gap-1 cursor-pointer";
+            } else {
+              btnToggleCandidates.className =
+                "px-2 py-1 text-[11px] font-medium text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded transition flex items-center gap-1 cursor-pointer";
+            }
+            if (lastCalculatedResult) {
+              redrawMapLayers(lastCalculatedResult, lastOriginId, lastEmbedOdop, lastAvoidStairs);
+            }
+          });
+        }
+
+        if (btnViewFort) {
+          btnViewFort.addEventListener('click', () => {
+            map.setView([26.228, 78.169], 15);
+          });
+        }
+
+        if (btnViewAll) {
+          btnViewAll.addEventListener('click', () => {
+            const allCoords = [];
+            if (activeRouteLayer && activeRouteLayer.getLatLngs().length > 0) {
+              allCoords.push(...activeRouteLayer.getLatLngs());
+            } else {
+              const originId = document.getElementById('select-origin').value;
+              if (GWALIOR_NODES[originId]) allCoords.push(GWALIOR_NODES[originId].coords);
+              const selected = getSelectedCandidates();
+              selected.forEach((k) => {
+                if (GWALIOR_NODES[k]) allCoords.push(GWALIOR_NODES[k].coords);
+              });
+            }
+            if (allCoords.length > 0) {
+              map.fitBounds(L.latLngBounds(allCoords), { padding: [50, 50], maxZoom: 15 });
+            } else {
+              map.setView([26.225, 78.173], 13);
+            }
+          });
+        }
+
+        // Tab switching for mobile/tablet (< 1024px)
+        const panelLeft = document.getElementById('panel-left');
+        const panelCenter = document.getElementById('panel-center');
+        const panelRight = document.getElementById('panel-right');
+
+        const tabBtnControls = document.getElementById('tab-btn-controls');
+        const tabBtnMap = document.getElementById('tab-btn-map');
+        const tabBtnTimeline = document.getElementById('tab-btn-timeline');
+
+        function switchMobileTab(target) {
+          if (window.innerWidth >= 1024) {
+            panelLeft.classList.remove('hidden');
+            panelCenter.classList.remove('hidden');
+            panelRight.classList.remove('hidden');
+            if (map) map.invalidateSize();
+            return;
+          }
+
+          const tabs = [
+            { id: 'controls', btn: tabBtnControls, panel: panelLeft },
+            { id: 'map', btn: tabBtnMap, panel: panelCenter },
+            { id: 'timeline', btn: tabBtnTimeline, panel: panelRight }
+          ];
+
+          tabs.forEach((t) => {
+            if (t.id === target) {
+              t.panel.classList.remove('hidden');
+              t.panel.classList.add('flex');
+              t.btn.className =
+                'tab-btn flex-1 py-1.5 px-2 text-center rounded-md font-semibold text-xs transition bg-slate-900 text-white shadow-xs';
+            } else {
+              t.panel.classList.add('hidden');
+              t.panel.classList.remove('flex');
+              t.btn.className =
+                'tab-btn flex-1 py-1.5 px-2 text-center rounded-md font-semibold text-xs transition bg-white text-slate-600 hover:text-slate-900 border border-slate-200';
+            }
+          });
+
+          if (target === 'map') {
+            setTimeout(() => {
+              if (map) map.invalidateSize();
+            }, 50);
+          }
+        }
+
+        if (tabBtnControls) tabBtnControls.addEventListener('click', () => switchMobileTab('controls'));
+        if (tabBtnMap) tabBtnMap.addEventListener('click', () => switchMobileTab('map'));
+        if (tabBtnTimeline) tabBtnTimeline.addEventListener('click', () => switchMobileTab('timeline'));
+
+        window.addEventListener('resize', () => {
+          if (window.innerWidth >= 1024) {
+            panelLeft.classList.remove('hidden');
+            panelCenter.classList.remove('hidden');
+            panelRight.classList.remove('hidden');
+          }
+          if (map) map.invalidateSize();
+        });
+
+        // Legend toggle
+        const legendCard = document.getElementById('legend-card');
+        const btnToggleLegend = document.getElementById('btn-toggle-legend');
+        const btnCloseLegend = document.getElementById('btn-close-legend');
+
+        if (btnToggleLegend && legendCard) {
+          btnToggleLegend.addEventListener('click', () => {
+            legendCard.classList.toggle('hidden');
+          });
+        }
+        if (btnCloseLegend && legendCard) {
+          btnCloseLegend.addEventListener('click', () => {
+            legendCard.classList.add('hidden');
+          });
+        }
+
+        // Initial Optimization Run
+        executeOptimization();
+        if (window.innerWidth < 1024) {
+          switchMobileTab('controls');
+        } else {
+          setTimeout(() => {
+            if (map) map.invalidateSize();
+          }, 100);
+        }
+      });
+    </script>
+  </body>
+</html>
